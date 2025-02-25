@@ -1,41 +1,53 @@
 import { useState } from "react";
 
 function App() {
+  // Stato per gestire la lista dei post
   const [posts, setPosts] = useState([]);
+  // Stato per gestire il valore del nuovo post
   const [newPost, setNewPost] = useState("");
+  // Stato per gestire l'indice del post in fase di modifica
   const [editingIndex, setEditingIndex] = useState(null);
+  // Stato per gestire il valore del post in fase di modifica
   const [editingPost, setEditingPost] = useState("");
 
+  // Funzione per aggiornare lo stato quando l'utente scrive un nuovo post
   const handleNewPost = (e) => {
     setNewPost(e.target.value);
   };
 
+  // Funzione per aggiungere un nuovo post alla lista
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (newPost.trim() === "") return;
-    setPosts([...posts, newPost]);
-    setNewPost("");
+    e.preventDefault(); // Previene il ricaricamento della pagina
+    if (newPost.trim() === "") return; // Controlla che il campo non sia vuoto
+    setPosts([...posts, { id: crypto.randomUUID(), title: newPost }]); // Aggiunge il nuovo post alla lista
+    setNewPost(""); // Resetta il campo di input
   };
 
-  const handleEdit = (index) => {
-    setEditingIndex(index);
-    setEditingPost(posts[index]);
+  // Funzione per avviare la modifica di un post
+  const handleEdit = (id) => {
+    const postToEdit = posts.find((post) => post.id === id);
+    setEditingIndex(id); // Imposta l'ID del post in fase di modifica
+    setEditingPost(postToEdit.title); // Imposta il valore corrente del post nell'input di modifica
   };
 
+  // Funzione per aggiornare il valore del post modificato
   const handleEditChange = (e) => {
     setEditingPost(e.target.value);
   };
 
-  const handleEditSubmit = (index) => {
-    const updatedPosts = [...posts];
-    updatedPosts[index] = editingPost;
-    setPosts(updatedPosts);
-    setEditingIndex(null);
-    setEditingPost("");
+  // Funzione per salvare la modifica del post
+  const handleEditSubmit = () => {
+    const updatedPosts = posts.map((post) =>
+      post.id === editingIndex ? { ...post, title: editingPost } : post
+    );
+    setPosts(updatedPosts); // Aggiorna la lista con il post modificato
+    setEditingIndex(null); // Esce dalla modalità modifica
+    setEditingPost(""); // Resetta il campo di input della modifica
   };
 
-  const handleDelete = (index) => {
-    const updatedPosts = posts.filter((_, i) => i !== index);
+  // Funzione per eliminare un post dalla lista
+  const handleDelete = (id) => {
+    const updatedPosts = posts.filter((post) => post.id !== id);
     setPosts(updatedPosts);
   };
 
@@ -54,45 +66,60 @@ function App() {
           <button type="submit" className="btn btn-primary">Aggiungi</button>
         </form>
 
+        {/* Mostra un messaggio se non ci sono post */}
+        {posts.length === 0 && <p className="text-muted">Nessun post disponibile. Aggiungine uno!</p>}
+
         <ul className="list-group">
-          {posts.map((post, index) => (
-            <li className="list-group-item d-flex justify-content-between align-items-center" key={index}>
-              {editingIndex === index ? (
+          {/* Ciclo sui post per visualizzarli */}
+          {posts.map((element) => (
+            <li
+              className="list-group-item d-flex justify-content-between align-items-center"
+              key={element.id}>   {/* la key serve per dare l' id a ogni elemento creato */}
+              {editingIndex === element.id ? (
                 <>
+                  {/* Input per modificare il post */}
                   <input
                     type="text"
                     value={editingPost}
                     onChange={handleEditChange}
                   />
-                  <button className="btn btn-success btn-sm" onClick={() => handleEditSubmit(index)}>Salva</button>
+
+                  {/* Bottone per modificare il post */}
+                  <button
+                    className="btn btn-success btn-sm"
+                    onClick={() => handleEditSubmit(element.id)}
+                  >
+                    Salva
+                  </button>
+
                 </>
               ) : (
                 <>
-                  {post}
+                  {element.title}
                   <div>
+                    {/* Bottone per modificare il post */}
                     <button
-                      onClick={() => handleEdit(index)}
+                      onClick={() => handleEdit(element.id)}
                       className="btn btn-warning btn-sm me-2"
                     >
-                      <img 
-                        src="src/assets/img/icons/pencil-solid.svg" 
-                        alt="Edit" 
-                        width={20} 
-                        height={20} 
+                      <img
+                        src="src/assets/img/icons/pencil-solid.svg"
+                        alt="Edit"
+                        width={20}
+                        height={20}
                       />
                     </button>
+                    {/* Bottone per eliminare il post */}
                     <button
-                      onClick={() => handleDelete(index)}
+                      onClick={() => handleDelete(element.id)}
                       className="btn btn-danger btn-sm"
                     >
-
-                      <img 
-                        src="src/assets/img/icons/trash-can-solid.svg" 
+                      <img
+                        src="src/assets/img/icons/trash-can-solid.svg"
                         alt="trash"
-                        width={20} 
-                        height={20} 
+                        width={20}
+                        height={20}
                       />
-                      
                     </button>
                   </div>
                 </>
